@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Database.Initialization" Version="1.0.2" />
+    <PackageReference Include="Hangfire.MemoryStorage" Version="1.6.0" />
     <PackageReference Include="Hangfire.SQLite.Core" Version="1.0.2" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.6.23" />
   </ItemGroup>
