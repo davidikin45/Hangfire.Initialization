@@ -35,13 +35,13 @@ namespace Hangfire.Initialization
             }
             else if (ConnectionStringHelper.IsSQLite(connectionString))
             {
-                bool dbExists = await DbInitializer.ExistsAsync(connectionString, cancellationToken);
+                bool dbExists = await DbInitializer.ExistsAsync(connectionString, cancellationToken).ConfigureAwait(false);
 
                 if (dbExists)
                 {
                     using (var conn = new SqliteConnection(connectionString))
                     {
-                        await conn.OpenAsync(cancellationToken);
+                        await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                         using (SqliteTransaction transaction = conn.BeginTransaction())
                         {
@@ -55,7 +55,7 @@ namespace Hangfire.Initialization
                                         var commandSql = $"DROP TABLE IF EXISTS {t.Replace("].[", ".")};";
                                         using (var command = new SqliteCommand(commandSql, conn, transaction))
                                         {
-                                            await command.ExecuteNonQueryAsync(cancellationToken);
+                                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                                         }
 
                                         commands.Add(commandSql);
@@ -76,7 +76,7 @@ namespace Hangfire.Initialization
                             {
                                 using (var command = new SqliteCommand(commandSql, conn, transaction))
                                 {
-                                    await command.ExecuteNonQueryAsync(cancellationToken);
+                                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                                 }
                             }
 
@@ -86,7 +86,7 @@ namespace Hangfire.Initialization
                 }
                 else
                 {
-                    await DbInitializer.EnsureDestroyedAsync(connectionString, cancellationToken);
+                    await DbInitializer.EnsureDestroyedAsync(connectionString, cancellationToken).ConfigureAwait(false);
                 }
             }
             else
@@ -97,7 +97,7 @@ namespace Hangfire.Initialization
                 {
                     using (var conn = new SqlConnection(connectionString))
                     {
-                        await conn.OpenAsync(cancellationToken);
+                        await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                         using (SqlTransaction transaction = conn.BeginTransaction())
                         {
@@ -111,7 +111,7 @@ namespace Hangfire.Initialization
                                         var commandSql = $"DROP TABLE IF EXISTS {t}";
                                         using (var command = new SqlCommand(commandSql, conn, transaction))
                                         {
-                                            await command.ExecuteNonQueryAsync(cancellationToken);
+                                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                                         }
 
                                         commands.Add(commandSql);
@@ -132,7 +132,7 @@ namespace Hangfire.Initialization
                             {
                                 using (var command = new SqlCommand(commandSql, conn, transaction))
                                 {
-                                    await command.ExecuteNonQueryAsync(cancellationToken);
+                                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                                 }
                             }
 
@@ -142,7 +142,7 @@ namespace Hangfire.Initialization
                 }
                 else
                 {
-                    await DbInitializer.EnsureDestroyedAsync(connectionString, cancellationToken);
+                    await DbInitializer.EnsureDestroyedAsync(connectionString, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -154,7 +154,7 @@ namespace Hangfire.Initialization
 
         public static async Task EnsureDbAndTablesCreatedAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            await EnsureDbCreatedAsync(connectionString, cancellationToken);
+            await EnsureDbCreatedAsync(connectionString, cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrEmpty(connectionString))
             {
 
