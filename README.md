@@ -4,6 +4,11 @@
 * Supports SQL Server and SQLite connection strings.
 * It also promotes [db initialization within program.cs Main method rather than startup class](https://docs.microsoft.com/en-us/aspnet/core/data/ef-mvc/intro?view=aspnetcore-2.2). This is good practice especially when using the [WebApplicationFactory for Integration Tests](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-2.2).
 
+## Nuget Packages
+* Hangfire
+* Hanfire.MemoryStorage
+* Hangfire.SQLite.Core
+
 ## Usage
 * await HangfireInitializer.EnsureTablesDeletedAsync(connectionString) = Ensures only tables related to hangfire are deleted.
 * await HangfireInitializer.EnsureDbCreatedAsync(connectionString) = Ensures hangfire physical database is created in preparation for hangfire to create schema.
