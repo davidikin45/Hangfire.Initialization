@@ -107,3 +107,4 @@ public class Startup
 ## See Also
 * [Database Initialization](https://github.com/davidikin45/Database.Initialization)
 * [EntityFrameworkCore Initialization](https://github.com/davidikin45/EntityFrameworkCore.Initialization)
+* [MiniProfiler Initialization](https://github.com/davidikin45/MiniProfilerDb.Initialization)

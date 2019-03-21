@@ -13,7 +13,7 @@ namespace Hangfire.Initialization
 {
     public static class HangfireInitializer
     {
-        public static List<(string Schema, string Table)> TableNames => new List<(string Schema, string Table)>()
+        public static List<(string Schema, string TableName)> Tables => new List<(string Schema, string TableName)>()
         {
             ("HangFire", "AggregatedCounter"),
             ("HangFire", "Counter"),
@@ -41,7 +41,7 @@ namespace Hangfire.Initialization
 
                 if (dbExists)
                 {
-                    var persistedTables = await DbInitializer.TableNamesAsync(connectionString, cancellationToken).ConfigureAwait(false);
+                    var persistedTables = await DbInitializer.TablesAsync(connectionString, cancellationToken).ConfigureAwait(false);
 
                     using (var conn = new SqliteConnection(connectionString))
                     {
@@ -49,7 +49,7 @@ namespace Hangfire.Initialization
 
                         using (SqliteTransaction transaction = conn.BeginTransaction())
                         {
-                            var deleteTables = TableNames.Where(x => persistedTables.Contains(x.Table));
+                            var deleteTables = Tables.Where(x => persistedTables.Any(p => (p.TableName == x.TableName || p.TableName == $"{x.Schema}.{x.TableName}") && (p.Schema == x.Schema || string.IsNullOrEmpty(p.Schema))));
 
                             //Drop tables
                             foreach (var tableName in deleteTables)
@@ -58,7 +58,7 @@ namespace Hangfire.Initialization
                                 {
                                     try
                                     {
-                                        var commandSql = $"DROP TABLE [{t.Schema}.{t.Table}];";
+                                        var commandSql = $"DROP TABLE [{t.Schema}.{t.TableName}];";
                                         using (var command = new SqliteCommand(commandSql, conn, transaction))
                                         {
                                             await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
@@ -105,7 +105,7 @@ namespace Hangfire.Initialization
 
                 if (dbExists)
                 {
-                    var persistedTables = await DbInitializer.TableNamesAsync(connectionString, cancellationToken).ConfigureAwait(false);
+                    var persistedTables = await DbInitializer.TablesAsync(connectionString, cancellationToken).ConfigureAwait(false);
 
                     using (var conn = new SqlConnection(connectionString))
                     {
@@ -113,7 +113,7 @@ namespace Hangfire.Initialization
 
                         using (SqlTransaction transaction = conn.BeginTransaction())
                         {
-                            var deleteTables = TableNames.Where(x => persistedTables.Contains(x.Table));
+                            var deleteTables = Tables.Where(x => persistedTables.Any(p => p.TableName == x.TableName));
 
                             //Drop tables
                             foreach (var tableName in deleteTables)
@@ -122,7 +122,7 @@ namespace Hangfire.Initialization
                                 {
                                     try
                                     {
-                                        var commandSql = $"DROP TABLE [{t.Schema}].[{t.Table}]";
+                                        var commandSql = $"DROP TABLE [{t.Schema}].[{t.TableName}]";
                                         using (var command = new SqlCommand(commandSql, conn, transaction))
                                         {
                                             await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
