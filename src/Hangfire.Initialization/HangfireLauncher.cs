@@ -15,27 +15,27 @@ namespace Hangfire.Initialization
 {
     public static class HangfireLauncher
     {
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServerInMemory()
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerInMemory()
         {
             return StartHangfireServer(new BackgroundJobServerOptions(), "", true);
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServerInMemory(string serverName)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerInMemory(string serverName)
         {
             return StartHangfireServer(serverName, "");
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServerSQLiteInMemory(bool prepareSchemaIfNecessary = true)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerSQLiteInMemory(bool prepareSchemaIfNecessary = true)
         {
             return StartHangfireServer(new BackgroundJobServerOptions(), "DataSource=:memory:", prepareSchemaIfNecessary);
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServerSQLiteInMemory(string serverName, bool prepareSchemaIfNecessary = true)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerSQLiteInMemory(string serverName, bool prepareSchemaIfNecessary = true)
         {
             return StartHangfireServer(serverName, "DataSource=:memory:", prepareSchemaIfNecessary);
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(string serverName, string connectionString, bool prepareSchemaIfNecessary = true)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(string serverName, string connectionString, bool prepareSchemaIfNecessary = true)
         {
             var options = new BackgroundJobServerOptions
             {
@@ -45,7 +45,7 @@ namespace Hangfire.Initialization
             return StartHangfireServer(options, connectionString, prepareSchemaIfNecessary);
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, string connectionString, bool prepareSchemaIfNecessary)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, string connectionString, bool prepareSchemaIfNecessary)
         {
             JobStorage storage;
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -71,7 +71,7 @@ namespace Hangfire.Initialization
 
             return StartHangfireServer(options, storage);
         }
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(string serverName, DbConnection existingConnection, bool prepareSchemaIfNecessary = true)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(string serverName, DbConnection existingConnection, bool prepareSchemaIfNecessary = true)
         {
             var options = new BackgroundJobServerOptions
             {
@@ -81,7 +81,7 @@ namespace Hangfire.Initialization
             return StartHangfireServer(options, existingConnection, prepareSchemaIfNecessary);
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, DbConnection existingConnection, bool prepareSchemaIfNecessary)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, DbConnection existingConnection, bool prepareSchemaIfNecessary)
         {
             if (existingConnection is SqliteConnection)
             {
@@ -110,7 +110,7 @@ namespace Hangfire.Initialization
             }
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, JobStorage storage)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, JobStorage storage)
         {
             var filterProvider = JobFilterProviders.Providers;
             var activator = JobActivator.Current;
