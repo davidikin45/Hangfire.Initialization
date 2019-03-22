@@ -95,7 +95,7 @@ namespace Hangfire.Initialization
                         //Drop tables
                         foreach (var t in deleteTables)
                         {
-                            var commandSql = $"DROP TABLE [{t.Schema}.{t.TableName}];";
+                            var commandSql = $"DROP TABLE [{t.Schema}].[{t.TableName}];";
                             commands.Add(commandSql);
                         }
 
