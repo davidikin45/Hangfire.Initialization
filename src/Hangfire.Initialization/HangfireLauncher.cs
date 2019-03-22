@@ -5,7 +5,11 @@ using Hangfire.Server;
 using Hangfire.SQLite;
 using Hangfire.SqlServer;
 using Hangfire.States;
+using Microsoft.Data.Sqlite;
+using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Data.SqlClient;
 
 namespace Hangfire.Initialization
 {
@@ -13,7 +17,7 @@ namespace Hangfire.Initialization
     {
         public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServerInMemory()
         {
-            return StartHangfireServer(new BackgroundJobServerOptions(), "");
+            return StartHangfireServer(new BackgroundJobServerOptions(), "", true);
         }
 
         public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServerInMemory(string serverName)
@@ -21,17 +25,27 @@ namespace Hangfire.Initialization
             return StartHangfireServer(serverName, "");
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(string serverName, string connectionString)
+        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServerSQLiteInMemory(bool prepareSchemaIfNecessary = true)
+        {
+            return StartHangfireServer(new BackgroundJobServerOptions(), "DataSource=:memory:", prepareSchemaIfNecessary);
+        }
+
+        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServerSQLiteInMemory(string serverName, bool prepareSchemaIfNecessary = true)
+        {
+            return StartHangfireServer(serverName, "DataSource=:memory:", prepareSchemaIfNecessary);
+        }
+
+        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(string serverName, string connectionString, bool prepareSchemaIfNecessary = true)
         {
             var options = new BackgroundJobServerOptions
             {
                 ServerName = serverName,
                 Queues = new string[] { serverName, "default" }
             };
-            return StartHangfireServer(options, connectionString);
+            return StartHangfireServer(options, connectionString, prepareSchemaIfNecessary);
         }
 
-        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, string connectionString)
+        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, string connectionString, bool prepareSchemaIfNecessary)
         {
             JobStorage storage;
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -40,13 +54,64 @@ namespace Hangfire.Initialization
             }
             else if (ConnectionStringHelper.IsSQLite(connectionString))
             {
-                storage = new SQLiteStorage(connectionString);
+                var storageOptions = new SQLiteStorageOptions()
+                {
+                    PrepareSchemaIfNecessary = prepareSchemaIfNecessary
+                };
+                storage = new SQLiteStorage(connectionString, storageOptions);
             }
             else
             {
-                storage = new SqlServerStorage(connectionString);
+                var storageOptions = new SqlServerStorageOptions()
+                {
+                    PrepareSchemaIfNecessary = prepareSchemaIfNecessary
+                };
+                storage = new SqlServerStorage(connectionString, storageOptions);
             }
 
+            return StartHangfireServer(options, storage);
+        }
+        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(string serverName, DbConnection existingConnection, bool prepareSchemaIfNecessary = true)
+        {
+            var options = new BackgroundJobServerOptions
+            {
+                ServerName = serverName,
+                Queues = new string[] { serverName, "default" }
+            };
+            return StartHangfireServer(options, existingConnection, prepareSchemaIfNecessary);
+        }
+
+        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, DbConnection existingConnection, bool prepareSchemaIfNecessary)
+        {
+            if (existingConnection is SqliteConnection)
+            {
+                var storageOptions = new SQLiteStorageOptions()
+                {
+                    PrepareSchemaIfNecessary = prepareSchemaIfNecessary
+                };
+
+                var storage = new SQLiteStorage(existingConnection, storageOptions);
+
+                return StartHangfireServer(options, storage);
+            }
+            else if (existingConnection is SqlConnection)
+            {
+                var storageOptions = new SqlServerStorageOptions()
+                {
+                    PrepareSchemaIfNecessary = prepareSchemaIfNecessary
+                };
+                var storage = new SqlServerStorage(existingConnection, storageOptions);
+
+                return StartHangfireServer(options, storage);
+            }
+            else
+            {
+                throw new Exception("Unsupported Connection");
+            }
+        }
+
+        public static (BackgroundJobServer server, IRecurringJobManager recurringJobManager, IBackgroundJobClient backgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, JobStorage storage)
+        {
             var filterProvider = JobFilterProviders.Providers;
             var activator = JobActivator.Current;
 
