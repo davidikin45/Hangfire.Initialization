@@ -1,7 +1,7 @@
-# Hangfire Initialization for SQL Server and SQLite
+# Hangfire Initialization for SQL Server, SQLite and SQLite InMemory
 
 * I have created the following extension methods which aims to allow Hangfire to be initialized & destroyed independently in a similar manner to how EF Core initialization works. A key addition is the ability to create a new database if it doesn't already exist.
-* Supports SQL Server and SQLite connection strings.
+* Supports SQL Server, SQLite and SQLite InMemory.
 * It also promotes [db initialization within program.cs Main method rather than startup class](https://docs.microsoft.com/en-us/aspnet/core/data/ef-mvc/intro?view=aspnetcore-2.2). This is good practice especially when using the [WebApplicationFactory for Integration Tests](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-2.2).
 
 ## Nuget Packages
