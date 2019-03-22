@@ -259,7 +259,7 @@ namespace Hangfire.Initialization
 
         public static Task<bool> EnsureDbDestroyedAsync(DbConnection existingConnection, CancellationToken cancellationToken = default)
         {
-            return DbInitializer.EnsureDestroyedAsync(connection, cancellationToken);
+            return DbInitializer.EnsureDestroyedAsync(existingConnection, cancellationToken);
         }
         #endregion
     }
