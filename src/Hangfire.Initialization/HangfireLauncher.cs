@@ -27,12 +27,12 @@ namespace Hangfire.Initialization
 
         public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerSQLiteInMemory(bool prepareSchemaIfNecessary = true)
         {
-            return StartHangfireServer(new BackgroundJobServerOptions(), "DataSource=:memory:", prepareSchemaIfNecessary);
+            return StartHangfireServer(new BackgroundJobServerOptions(), "DataSource=:memory:;", prepareSchemaIfNecessary);
         }
 
         public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerSQLiteInMemory(string serverName, bool prepareSchemaIfNecessary = true)
         {
-            return StartHangfireServer(serverName, "DataSource=:memory:", prepareSchemaIfNecessary);
+            return StartHangfireServer(serverName, "DataSource=:memory:;", prepareSchemaIfNecessary);
         }
 
         public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(string serverName, string connectionString, bool prepareSchemaIfNecessary = true)
