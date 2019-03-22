@@ -18,7 +18,6 @@ namespace Hangfire.Initialization
             ("HangFire", "AggregatedCounter"),
             ("HangFire", "Counter"),
             ("HangFire", "Hash"),
-            ("HangFire", "Job"),
             ("HangFire", "JobParameter"),
             ("HangFire", "JobQueue"),
             ("HangFire", "List"),
@@ -26,16 +25,16 @@ namespace Hangfire.Initialization
             ("HangFire", "Server"),
             ("HangFire", "Set"),
             ("HangFire", "State"),
+            ("HangFire", "Job")
         };
         public static async Task<bool> EnsureTablesDeletedAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-
             var commands = new List<String>();
             if (string.IsNullOrEmpty(connectionString))
             {
                 return false;
             }
-            else if (ConnectionStringHelper.IsSQLite(connectionString))
+            else if (Database.Initialization.ConnectionStringHelper.IsSQLite(connectionString))
             {
                 bool dbExists = await DbInitializer.ExistsAsync(connectionString, cancellationToken).ConfigureAwait(false);
 
@@ -47,33 +46,13 @@ namespace Hangfire.Initialization
                     {
                         await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-                        using (SqliteTransaction transaction = conn.BeginTransaction())
+                        var deleteTables = Tables.Where(x => persistedTables.Any(p => (p.TableName == x.TableName || p.TableName == $"{x.Schema}.{x.TableName}") && (p.Schema == x.Schema || string.IsNullOrEmpty(p.Schema))));
+
+                        //Drop tables
+                        foreach (var t in deleteTables)
                         {
-                            var deleteTables = Tables.Where(x => persistedTables.Any(p => (p.TableName == x.TableName || p.TableName == $"{x.Schema}.{x.TableName}") && (p.Schema == x.Schema || string.IsNullOrEmpty(p.Schema))));
-
-                            //Drop tables
-                            foreach (var tableName in deleteTables)
-                            {
-                                foreach (var t in deleteTables)
-                                {
-                                    try
-                                    {
-                                        var commandSql = $"DROP TABLE [{t.Schema}.{t.TableName}];";
-                                        using (var command = new SqliteCommand(commandSql, conn, transaction))
-                                        {
-                                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                                        }
-
-                                        commands.Add(commandSql);
-                                    }
-                                    catch
-                                    {
-
-                                    }
-                                }
-                            }
-
-                            transaction.Rollback();
+                            var commandSql = $"DROP TABLE [{t.Schema}.{t.TableName}];";
+                            commands.Add(commandSql);
                         }
 
                         bool deleted = false;
@@ -109,35 +88,15 @@ namespace Hangfire.Initialization
 
                     using (var conn = new SqlConnection(connectionString))
                     {
-                        await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+                        conn.Open();
 
-                        using (SqlTransaction transaction = conn.BeginTransaction())
+                        var deleteTables = Tables.Where(x => persistedTables.Any(p => (p.TableName == x.TableName || p.TableName == $"{x.Schema}.{x.TableName}") && (p.Schema == x.Schema || string.IsNullOrEmpty(p.Schema))));
+
+                        //Drop tables
+                        foreach (var t in deleteTables)
                         {
-                            var deleteTables = Tables.Where(x => persistedTables.Any(p => p.TableName == x.TableName));
-
-                            //Drop tables
-                            foreach (var tableName in deleteTables)
-                            {
-                                foreach (var t in deleteTables)
-                                {
-                                    try
-                                    {
-                                        var commandSql = $"DROP TABLE [{t.Schema}].[{t.TableName}]";
-                                        using (var command = new SqlCommand(commandSql, conn, transaction))
-                                        {
-                                            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                                        }
-
-                                        commands.Add(commandSql);
-                                    }
-                                    catch
-                                    {
-
-                                    }
-                                }
-                            }
-
-                            transaction.Rollback();
+                            var commandSql = $"DROP TABLE [{t.Schema}.{t.TableName}];";
+                            commands.Add(commandSql);
                         }
 
                         bool deleted = false;
