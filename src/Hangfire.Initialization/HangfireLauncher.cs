@@ -118,7 +118,7 @@ namespace Hangfire.Initialization
             var backgroundJobFactory = new BackgroundJobFactory(filterProvider);
             var performer = new BackgroundJobPerformer(filterProvider, activator);
             var backgroundJobStateChanger = new BackgroundJobStateChanger(filterProvider);
-            IEnumerable<IBackgroundProcess> additionalProcesses = null;
+            IEnumerable<IBackgroundProcess> additionalProcesses = new List<IBackgroundProcess>();
 
             var server = new BackgroundJobServer(options, storage, additionalProcesses,
                 options.FilterProvider ?? filterProvider,
