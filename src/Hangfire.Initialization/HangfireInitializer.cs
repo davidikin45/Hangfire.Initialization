@@ -14,23 +14,27 @@ namespace Hangfire.Initialization
 {
     public static class HangfireInitializer
     {
-        public static List<(string Schema, string TableName)> Tables => new List<(string Schema, string TableName)>()
+        public static List<string> Tables => new List<string>()
         {
-            ("HangFire", "AggregatedCounter"),
-            ("HangFire", "Counter"),
-            ("HangFire", "Hash"),
-            ("HangFire", "JobParameter"),
-            ("HangFire", "JobQueue"),
-            ("HangFire", "List"),
-            ("HangFire", "Schema"),
-            ("HangFire", "Server"),
-            ("HangFire", "Set"),
-            ("HangFire", "State"),
-            ("HangFire", "Job")
+            "AggregatedCounter",
+            "Counter",
+            "Hash",
+            "JobParameter",
+            "JobQueue",
+            "List",
+            "Schema",
+            "Server",
+            "Set",
+            "State",
+            "Job"
         };
 
         #region Ensure Db and Tables Created
-        public static async Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, CancellationToken cancellationToken = default)
+        public static Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, CancellationToken cancellationToken = default)
+        {
+            return EnsureDbAndTablesCreatedAsync(connectionString, "HangFire", cancellationToken);
+        }
+        public static async Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, string schemaName, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -40,19 +44,23 @@ namespace Hangfire.Initialization
             {
                 using (var connection = new SqliteConnection(connectionString))
                 {
-                    return await EnsureDbAndTablesCreatedAsync(connection, cancellationToken);
+                    return await EnsureDbAndTablesCreatedAsync(connection, schemaName, cancellationToken);
                 }
             }
             else
             {
                 using (var connection = new SqlConnection(connectionString))
                 {
-                    return await EnsureDbAndTablesCreatedAsync(connection, cancellationToken);
+                    return await EnsureDbAndTablesCreatedAsync(connection, schemaName, cancellationToken);
                 }
             }
         }
 
-        public static async Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, CancellationToken cancellationToken = default)
+        public static Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, CancellationToken cancellationToken = default)
+        {
+            return EnsureDbAndTablesCreatedAsync(existingConnection, "HangFire", cancellationToken);
+        }
+         public static async Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, string schemaName, CancellationToken cancellationToken = default)
         {
             if (existingConnection is SqliteConnection)
             {
@@ -62,6 +70,7 @@ namespace Hangfire.Initialization
 
                 var options = new SQLiteStorageOptions
                 {
+                    SchemaName = schemaName,
                     PrepareSchemaIfNecessary = true
                 };
 
@@ -78,6 +87,7 @@ namespace Hangfire.Initialization
 
                 var options = new SqlServerStorageOptions
                 {
+                    SchemaName = schemaName,
                     PrepareSchemaIfNecessary = true
                 };
 
@@ -106,7 +116,11 @@ namespace Hangfire.Initialization
         #endregion
 
         #region Ensure Tables Deleted
-        public static async Task<bool> EnsureTablesDeletedAsync(string connectionString, CancellationToken cancellationToken = default)
+        public static Task<bool> EnsureTablesDeletedAsync(string connectionString, CancellationToken cancellationToken = default)
+        {
+            return EnsureTablesDeletedAsync(connectionString, "HangFire", cancellationToken);
+        }
+        public static async Task<bool> EnsureTablesDeletedAsync(string connectionString, string schemaName, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -116,19 +130,23 @@ namespace Hangfire.Initialization
             {
                 using (var connection = new SqliteConnection(connectionString))
                 {
-                    return await EnsureDbAndTablesCreatedAsync(connection, cancellationToken);
+                    return await EnsureTablesDeletedAsync(connection, schemaName, cancellationToken);
                 }
             }
             else
             {
                 using (var connection = new SqlConnection(connectionString))
                 {
-                    return await EnsureDbAndTablesCreatedAsync(connection, cancellationToken);
+                    return await EnsureTablesDeletedAsync(connection, schemaName, cancellationToken);
                 }
             }
         }
 
-        public static async Task<bool> EnsureTablesDeletedAsync(DbConnection existingConnection, CancellationToken cancellationToken = default)
+        public static Task<bool> EnsureTablesDeletedAsync(DbConnection existingConnection, CancellationToken cancellationToken = default)
+        {
+            return EnsureTablesDeletedAsync(existingConnection, "HangFire", cancellationToken);
+        }
+        public static async Task<bool> EnsureTablesDeletedAsync(DbConnection existingConnection, string schemaName, CancellationToken cancellationToken = default)
         {
             var commands = new List<String>();
             if (existingConnection is SqliteConnection)
@@ -146,12 +164,12 @@ namespace Hangfire.Initialization
                         opened = true;
                     }
 
-                    var deleteTables = Tables.Where(x => persistedTables.Any(p => (p.TableName == x.TableName || p.TableName == $"{x.Schema}.{x.TableName}") && (p.Schema == x.Schema || string.IsNullOrEmpty(p.Schema))));
+                    var deleteTables = Tables.Where(x => persistedTables.Any(p => (p.TableName == x || p.TableName == $"{schemaName}.{x}") && (p.Schema == schemaName || string.IsNullOrEmpty(p.Schema))));
 
                     //Drop tables
                     foreach (var t in deleteTables)
                     {
-                        var commandSql = $"DROP TABLE [{t.Schema}.{t.TableName}];";
+                        var commandSql = $"DROP TABLE [{schemaName}.{t}];";
                         commands.Add(commandSql);
                     }
 
@@ -203,12 +221,12 @@ namespace Hangfire.Initialization
                         opened = true;
                     }
 
-                    var deleteTables = Tables.Where(x => persistedTables.Any(p => (p.TableName == x.TableName || p.TableName == $"{x.Schema}.{x.TableName}") && (p.Schema == x.Schema || string.IsNullOrEmpty(p.Schema))));
+                    var deleteTables = Tables.Where(x => persistedTables.Any(p => (p.TableName == x || p.TableName == $"{schemaName}.{x}") && (p.Schema == schemaName || string.IsNullOrEmpty(p.Schema))));
 
                     //Drop tables
                     foreach (var t in deleteTables)
                     {
-                        var commandSql = $"DROP TABLE [{t.Schema}].[{t.TableName}];";
+                        var commandSql = $"DROP TABLE [{schemaName}].[{t}];";
                         commands.Add(commandSql);
                     }
 
