@@ -25,27 +25,27 @@ namespace Hangfire.Initialization
             return StartHangfireServer(serverName, "");
         }
 
-        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerSQLiteInMemory(bool prepareSchemaIfNecessary = true)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerSQLiteInMemory(bool prepareSchemaIfNecessary = true, string schemaName = "HangFire")
         {
-            return StartHangfireServer(new BackgroundJobServerOptions(), "DataSource=:memory:;", prepareSchemaIfNecessary);
+            return StartHangfireServer(new BackgroundJobServerOptions(), "DataSource=:memory:;", prepareSchemaIfNecessary, schemaName);
         }
 
-        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerSQLiteInMemory(string serverName, bool prepareSchemaIfNecessary = true)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServerSQLiteInMemory(string serverName, bool prepareSchemaIfNecessary = true, string schemaName = "HangFire")
         {
-            return StartHangfireServer(serverName, "DataSource=:memory:;", prepareSchemaIfNecessary);
+            return StartHangfireServer(serverName, "DataSource=:memory:;", prepareSchemaIfNecessary, schemaName);
         }
 
-        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(string serverName, string connectionString, bool prepareSchemaIfNecessary = true)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(string serverName, string connectionString, bool prepareSchemaIfNecessary = true, string schemaName = "HangFire")
         {
             var options = new BackgroundJobServerOptions
             {
                 ServerName = serverName,
                 Queues = new string[] { serverName, "default" }
             };
-            return StartHangfireServer(options, connectionString, prepareSchemaIfNecessary);
+            return StartHangfireServer(options, connectionString, prepareSchemaIfNecessary, schemaName);
         }
 
-        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, string connectionString, bool prepareSchemaIfNecessary)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, string connectionString, bool prepareSchemaIfNecessary, string schemaName = "HangFire")
         {
             JobStorage storage;
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -56,6 +56,7 @@ namespace Hangfire.Initialization
             {
                 var storageOptions = new SQLiteStorageOptions()
                 {
+                    SchemaName = schemaName,
                     PrepareSchemaIfNecessary = prepareSchemaIfNecessary
                 };
                 storage = new SQLiteStorage(connectionString, storageOptions);
@@ -64,6 +65,7 @@ namespace Hangfire.Initialization
             {
                 var storageOptions = new SqlServerStorageOptions()
                 {
+                    SchemaName = schemaName,
                     PrepareSchemaIfNecessary = prepareSchemaIfNecessary
                 };
                 storage = new SqlServerStorage(connectionString, storageOptions);
@@ -71,22 +73,23 @@ namespace Hangfire.Initialization
 
             return StartHangfireServer(options, storage);
         }
-        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(string serverName, DbConnection existingConnection, bool prepareSchemaIfNecessary = true)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(string serverName, DbConnection existingConnection, bool prepareSchemaIfNecessary = true, string schemaName = "HangFire")
         {
             var options = new BackgroundJobServerOptions
             {
                 ServerName = serverName,
                 Queues = new string[] { serverName, "default" }
             };
-            return StartHangfireServer(options, existingConnection, prepareSchemaIfNecessary);
+            return StartHangfireServer(options, existingConnection, prepareSchemaIfNecessary, schemaName);
         }
 
-        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, DbConnection existingConnection, bool prepareSchemaIfNecessary)
+        public static (BackgroundJobServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient) StartHangfireServer(BackgroundJobServerOptions options, DbConnection existingConnection, bool prepareSchemaIfNecessary, string schemaName = "HangFire")
         {
             if (existingConnection is SqliteConnection)
             {
                 var storageOptions = new SQLiteStorageOptions()
                 {
+                    SchemaName = schemaName,
                     PrepareSchemaIfNecessary = prepareSchemaIfNecessary
                 };
 
@@ -98,6 +101,7 @@ namespace Hangfire.Initialization
             {
                 var storageOptions = new SqlServerStorageOptions()
                 {
+                    SchemaName = schemaName,
                     PrepareSchemaIfNecessary = prepareSchemaIfNecessary
                 };
                 var storage = new SqlServerStorage(existingConnection, storageOptions);
