@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 
-namespace Hangfire.Initialization.Attributes
+namespace Hangfire.Initialization
 {
     //var options = new DashboardOptions
     //{

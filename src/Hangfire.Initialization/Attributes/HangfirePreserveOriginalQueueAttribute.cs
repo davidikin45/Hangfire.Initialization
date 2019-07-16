@@ -2,7 +2,7 @@
 using Hangfire.States;
 using Hangfire.Storage;
 
-namespace AspNetCore.Base.Hangfire
+namespace Hangfire.Initialization
 {
     //services.AddHangfire(config =>
     //{

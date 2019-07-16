@@ -2,7 +2,7 @@
 using Hangfire.Logging;
 using Hangfire.Server;
 
-namespace AspNetCore.Base.Hangfire
+namespace Hangfire.Initialization
 {
      //services.AddHangfire(config =>
      // {
