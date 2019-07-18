@@ -30,11 +30,11 @@ namespace Hangfire.Initialization
         };
 
         #region Ensure Db and Tables Created
-        public static Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, CancellationToken cancellationToken = default)
+        public static Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, bool enableHeavyMigrations = true, CancellationToken cancellationToken = default)
         {
-            return EnsureDbAndTablesCreatedAsync(connectionString, "HangFire", cancellationToken);
+            return EnsureDbAndTablesCreatedAsync(connectionString, "HangFire", enableHeavyMigrations, cancellationToken);
         }
-        public static async Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, string schemaName, CancellationToken cancellationToken = default)
+        public static async Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, string schemaName, bool enableHeavyMigrations = true, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -44,23 +44,23 @@ namespace Hangfire.Initialization
             {
                 using (var connection = new SqliteConnection(connectionString))
                 {
-                    return await EnsureDbAndTablesCreatedAsync(connection, schemaName, cancellationToken);
+                    return await EnsureDbAndTablesCreatedAsync(connection, schemaName, enableHeavyMigrations, cancellationToken);
                 }
             }
             else
             {
                 using (var connection = new SqlConnection(connectionString))
                 {
-                    return await EnsureDbAndTablesCreatedAsync(connection, schemaName, cancellationToken);
+                    return await EnsureDbAndTablesCreatedAsync(connection, schemaName, enableHeavyMigrations, cancellationToken);
                 }
             }
         }
 
-        public static Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, CancellationToken cancellationToken = default)
+        public static Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, bool enableHeavyMigrations = true, CancellationToken cancellationToken = default)
         {
-            return EnsureDbAndTablesCreatedAsync(existingConnection, "HangFire", cancellationToken);
+            return EnsureDbAndTablesCreatedAsync(existingConnection, "HangFire", enableHeavyMigrations, cancellationToken);
         }
-         public static async Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, string schemaName, CancellationToken cancellationToken = default)
+         public static async Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, string schemaName, bool enableHeavyMigrations = true, CancellationToken cancellationToken = default)
         {
             if (existingConnection is SqliteConnection)
             {
@@ -88,7 +88,8 @@ namespace Hangfire.Initialization
                 var options = new SqlServerStorageOptions
                 {
                     SchemaName = schemaName,
-                    PrepareSchemaIfNecessary = true
+                    PrepareSchemaIfNecessary = true,
+                    EnableHeavyMigrations = enableHeavyMigrations
                 };
 
                 //Initialize Schema
