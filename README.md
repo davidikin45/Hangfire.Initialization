@@ -42,7 +42,7 @@ PM> Install-Package Hangfire.Initialization
 ## Development and Integration Environment Example
 ```
 var sqlServerConnectionString = "Server=(localdb)\\mssqllocaldb;Database=HangfireDatabase;Trusted_Connection=True;MultipleActiveResultSets=true;";
-await HangfireInitializer.EnsureTablesDeleted(sqlServerConnectionString);
+await HangfireInitializer.EnsureTablesDeletedAsync(sqlServerConnectionString);
 await HangfireInitializer.EnsureDbAndTablesCreatedAsync(sqlServerConnectionString);
 
 var sqliteConnectionString = "Data Source=Hangfire.db;";

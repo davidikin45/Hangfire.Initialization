@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Hangfire.Storage;
+﻿using Hangfire.Storage;
+using System;
 
 namespace Hangfire.Initialization
 {
-    class NoopJobStorage : JobStorage
+    public class NoopJobStorage : JobStorage
     {
         public override IStorageConnection GetConnection()
         {
