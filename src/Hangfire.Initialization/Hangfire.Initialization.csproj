@@ -11,9 +11,9 @@
     <Description>Allow Hangfire to be initialized &amp; destroyed independently in a similar manner to how EF Core initialization works. A key addition is the ability to create a new database if it doesn't already exist.</Description>
     <Copyright>(c) David Ikin</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.30</Version>
-    <AssemblyVersion>1.0.30.0</AssemblyVersion>
-    <FileVersion>1.0.30.0</FileVersion>
+    <Version>1.0.31</Version>
+    <AssemblyVersion>1.0.31.0</AssemblyVersion>
+    <FileVersion>1.0.31.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

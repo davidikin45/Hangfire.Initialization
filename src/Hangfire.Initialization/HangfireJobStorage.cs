@@ -32,7 +32,10 @@ namespace Hangfire.Initialization
                 {
                     SchemaName = schemaName,
                     PrepareSchemaIfNecessary = intitializeDatabase,
-                    QueuePollInterval = TimeSpan.FromSeconds(15), // Default value,
+                    //QueuePollInterval = TimeSpan.FromSeconds(15), // Default value,
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
                     UseRecommendedIsolationLevel = true,
                     UsePageLocksOnDequeue = true,
                     DisableGlobalLocks = true,
@@ -62,7 +65,10 @@ namespace Hangfire.Initialization
                 {
                     SchemaName = schemaName,
                     PrepareSchemaIfNecessary = intitializeDatabase,
-                    QueuePollInterval = TimeSpan.FromSeconds(15), // Default value,
+                    //QueuePollInterval = TimeSpan.FromSeconds(15), // Default value,
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
                     UseRecommendedIsolationLevel = true,
                     UsePageLocksOnDequeue = true,
                     DisableGlobalLocks = true,
