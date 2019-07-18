@@ -140,28 +140,25 @@ namespace Hangfire.Initialization
             var additionalProcesses = launcherOptions?.AdditionalProcesses ?? Enumerable.Empty<IBackgroundProcess>();
 
             var filterProvider = launcherOptions?.FilterProvider ?? options.FilterProvider ?? JobFilterProviders.Providers;
+            var timeZoneResolver = launcherOptions?.TimeZoneResolver ?? new DefaultTimeZoneResolver();
             var activator = launcherOptions?.Activator ?? options.Activator ?? JobActivator.Current;
 
-            var factory = new BackgroundJobFactory(filterProvider);
-            var performer = new BackgroundJobPerformer(filterProvider, activator, options.TaskScheduler);
-            var stateChanger = new BackgroundJobStateChanger(filterProvider);
+            //var factory = new BackgroundJobFactory(filterProvider);
+            //var performer = new BackgroundJobPerformer(filterProvider, activator, options.TaskScheduler);
+            //var stateChanger = new BackgroundJobStateChanger(filterProvider);
 
-            var server = new HangfireBackgroundJobServer(options, storage, additionalProcesses,
-                null,
-                null,
-                factory,
-                performer,
-                stateChanger);
+            var server = new BackgroundJobServer(options, storage, additionalProcesses);
+            //var server = new HangfireBackgroundJobServer(options, storage, additionalProcesses, null, null, factory, performer, stateChanger);
 
-            if(launcherOptions?.ApplicationLifetime != null)
+            if (launcherOptions?.ApplicationLifetime != null)
             {
                 launcherOptions?.ApplicationLifetime.ApplicationStopping.Register(() => server.SendStop());
                 launcherOptions?.ApplicationLifetime.ApplicationStopped.Register(() => server.Dispose());
             }
 
-            var recurringJobManager = new RecurringJobManager(storage, factory);
+            var recurringJobManager = new RecurringJobManager(storage, filterProvider, timeZoneResolver);
 
-            var backgroundJobClient = new BackgroundJobClient(storage, factory, stateChanger);
+            var backgroundJobClient = new BackgroundJobClient(storage, filterProvider);
 
             return (server, recurringJobManager, backgroundJobClient, storage);
         }
@@ -185,6 +182,8 @@ namespace Hangfire.Initialization
         public IJobFilterProvider FilterProvider { get; set; }
         public JobActivator Activator { get; set; }
         public IApplicationLifetime ApplicationLifetime { get; set; }
+
+        public ITimeZoneResolver TimeZoneResolver { get; set; }
 
         public bool PrepareSchemaIfNecessary { get; set; } = true;
 
