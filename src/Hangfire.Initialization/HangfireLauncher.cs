@@ -58,6 +58,16 @@ namespace Hangfire.Initialization
             return StartHangfireServer(options, existingConnection, config);
         }
 
+        public static (IBackgroundProcessingServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient, JobStorage Storage) StartHangfireServer(string serverName, JobStorage storage, Action<HangfireLauncherOptions> config = null)
+        {
+            var options = new BackgroundJobServerOptions
+            {
+                ServerName = serverName,
+                Queues = new string[] { serverName, "default" }
+            };
+            return StartHangfireServer(options, storage, config);
+        }
+
         public static (IBackgroundProcessingServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient, JobStorage Storage) StartHangfireServer(BackgroundJobServerOptions options, JobStorage storage, Action<HangfireLauncherOptions> config = null)
         {
             var launcherOptions = new HangfireLauncherOptions();
@@ -73,29 +83,7 @@ namespace Hangfire.Initialization
             if (config != null)
                 config(launcherOptions);
 
-            JobStorage storage;
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                storage = new MemoryStorage.MemoryStorage();
-            }
-            else if (ConnectionStringHelper.IsSQLite(connectionString))
-            {
-                var storageOptions = new SQLiteStorageOptions()
-                {
-                    SchemaName = launcherOptions.SchemaName,
-                    PrepareSchemaIfNecessary = launcherOptions.PrepareSchemaIfNecessary
-                };
-                storage = new SQLiteStorage(connectionString, storageOptions);
-            }
-            else
-            {
-                var storageOptions = new SqlServerStorageOptions()
-                {
-                    SchemaName = launcherOptions.SchemaName,
-                    PrepareSchemaIfNecessary = launcherOptions.PrepareSchemaIfNecessary
-                };
-                storage = new SqlServerStorage(connectionString, storageOptions);
-            }
+            JobStorage storage = HangfireJobStorage.GetJobStorage(connectionString, launcherOptions.PrepareSchemaIfNecessary, launcherOptions.SchemaName);
 
             return StartHangfireServer(options, storage, launcherOptions);
         }
@@ -106,33 +94,9 @@ namespace Hangfire.Initialization
             if (config != null)
                 config(launcherOptions);
 
-            if (existingConnection is SqliteConnection)
-            {
-                var storageOptions = new SQLiteStorageOptions()
-                {
-                    SchemaName = launcherOptions.SchemaName,
-                    PrepareSchemaIfNecessary = launcherOptions.PrepareSchemaIfNecessary
-                };
+            JobStorage storage = HangfireJobStorage.GetJobStorage(existingConnection, launcherOptions.PrepareSchemaIfNecessary, launcherOptions.SchemaName);
 
-                var storage = new SQLiteStorage(existingConnection, storageOptions);
-
-                return StartHangfireServer(options, storage, launcherOptions);
-            }
-            else if (existingConnection is SqlConnection)
-            {
-                var storageOptions = new SqlServerStorageOptions()
-                {
-                    SchemaName = launcherOptions.SchemaName,
-                    PrepareSchemaIfNecessary = launcherOptions.PrepareSchemaIfNecessary
-                };
-                var storage = new SqlServerStorage(existingConnection, storageOptions);
-
-                return StartHangfireServer(options, storage, launcherOptions);
-            }
-            else
-            {
-                throw new Exception("Unsupported Connection");
-            }
+            return StartHangfireServer(options, storage, launcherOptions);
         }
 
         public static (IBackgroundProcessingServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient, JobStorage Storage) StartHangfireServer(BackgroundJobServerOptions options, JobStorage storage, HangfireLauncherOptions launcherOptions)
@@ -141,7 +105,7 @@ namespace Hangfire.Initialization
 
             var filterProvider = launcherOptions?.FilterProvider ?? options.FilterProvider ?? JobFilterProviders.Providers;
             var timeZoneResolver = launcherOptions?.TimeZoneResolver ?? new DefaultTimeZoneResolver();
-            var activator = launcherOptions?.Activator ?? options.Activator ?? JobActivator.Current;
+            //var activator = launcherOptions?.Activator ?? options.Activator ?? JobActivator.Current;
 
             //var factory = new BackgroundJobFactory(filterProvider);
             //var performer = new BackgroundJobPerformer(filterProvider, activator, options.TaskScheduler);
