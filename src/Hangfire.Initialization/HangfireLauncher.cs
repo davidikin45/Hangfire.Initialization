@@ -1,16 +1,9 @@
-﻿using Database.Initialization;
-using Hangfire.Client;
-using Hangfire.Common;
+﻿using Hangfire.Common;
 using Hangfire.Server;
-using Hangfire.SQLite;
-using Hangfire.SqlServer;
-using Hangfire.States;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 
@@ -83,7 +76,18 @@ namespace Hangfire.Initialization
             if (config != null)
                 config(launcherOptions);
 
-            JobStorage storage = HangfireJobStorage.GetJobStorage(connectionString, launcherOptions.PrepareSchemaIfNecessary, launcherOptions.SchemaName);
+            JobStorage storage = HangfireJobStorage.GetJobStorage(connectionString, storageOptions => {
+                storageOptions.PrepareSchemaIfNecessary = launcherOptions.StorageOptions.PrepareSchemaIfNecessary;
+                storageOptions.EnableHeavyMigrations = launcherOptions.StorageOptions.EnableHeavyMigrations;
+                storageOptions.EnableLongPolling = launcherOptions.StorageOptions.EnableLongPolling;
+                storageOptions.SchemaName = launcherOptions.StorageOptions.SchemaName;
+                storageOptions.QueuePollInterval = launcherOptions.StorageOptions.QueuePollInterval;
+                storageOptions.CommandBatchMaxTimeout = launcherOptions.StorageOptions.CommandBatchMaxTimeout;
+                storageOptions.SlidingInvisibilityTimeout = launcherOptions.StorageOptions.SlidingInvisibilityTimeout;
+                storageOptions.UseRecommendedIsolationLevel = launcherOptions.StorageOptions.UseRecommendedIsolationLevel;
+                storageOptions.UsePageLocksOnDequeue = launcherOptions.StorageOptions.UsePageLocksOnDequeue;
+                storageOptions.DisableGlobalLocks = launcherOptions.StorageOptions.DisableGlobalLocks;
+            }).JobStorage;
 
             return StartHangfireServer(options, storage, launcherOptions);
         }
@@ -94,7 +98,18 @@ namespace Hangfire.Initialization
             if (config != null)
                 config(launcherOptions);
 
-            JobStorage storage = HangfireJobStorage.GetJobStorage(existingConnection, launcherOptions.PrepareSchemaIfNecessary, launcherOptions.SchemaName);
+            JobStorage storage = HangfireJobStorage.GetJobStorage(existingConnection, storageOptions => {
+                storageOptions.PrepareSchemaIfNecessary = launcherOptions.StorageOptions.PrepareSchemaIfNecessary;
+                storageOptions.EnableHeavyMigrations = launcherOptions.StorageOptions.EnableHeavyMigrations;
+                storageOptions.EnableLongPolling = launcherOptions.StorageOptions.EnableLongPolling;
+                storageOptions.SchemaName = launcherOptions.StorageOptions.SchemaName;
+                storageOptions.QueuePollInterval = launcherOptions.StorageOptions.QueuePollInterval;
+                storageOptions.CommandBatchMaxTimeout = launcherOptions.StorageOptions.CommandBatchMaxTimeout;
+                storageOptions.SlidingInvisibilityTimeout = launcherOptions.StorageOptions.SlidingInvisibilityTimeout;
+                storageOptions.UseRecommendedIsolationLevel = launcherOptions.StorageOptions.UseRecommendedIsolationLevel;
+                storageOptions.UsePageLocksOnDequeue = launcherOptions.StorageOptions.UsePageLocksOnDequeue;
+                storageOptions.DisableGlobalLocks = launcherOptions.StorageOptions.DisableGlobalLocks;
+            });
 
             return StartHangfireServer(options, storage, launcherOptions);
         }
@@ -149,8 +164,7 @@ namespace Hangfire.Initialization
 
         public ITimeZoneResolver TimeZoneResolver { get; set; }
 
-        public bool PrepareSchemaIfNecessary { get; set; } = true;
+        public JobStorageOptions StorageOptions { get; set; } = new JobStorageOptions();
 
-        public string SchemaName { get; set; } = "HangFire";
     }
 }

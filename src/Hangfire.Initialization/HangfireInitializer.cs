@@ -30,11 +30,7 @@ namespace Hangfire.Initialization
         };
 
         #region Ensure Db and Tables Created
-        public static Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, bool enableHeavyMigrations = true, CancellationToken cancellationToken = default)
-        {
-            return EnsureDbAndTablesCreatedAsync(connectionString, "HangFire", enableHeavyMigrations, cancellationToken);
-        }
-        public static async Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, string schemaName, bool enableHeavyMigrations = true, CancellationToken cancellationToken = default)
+        public static async Task<bool> EnsureDbAndTablesCreatedAsync(string connectionString, Action<JobStorageOptions> config = null, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -44,23 +40,19 @@ namespace Hangfire.Initialization
             {
                 using (var connection = new SqliteConnection(connectionString))
                 {
-                    return await EnsureDbAndTablesCreatedAsync(connection, schemaName, enableHeavyMigrations, cancellationToken);
+                    return await EnsureDbAndTablesCreatedAsync(connection, config, cancellationToken);
                 }
             }
             else
             {
                 using (var connection = new SqlConnection(connectionString))
                 {
-                    return await EnsureDbAndTablesCreatedAsync(connection, schemaName, enableHeavyMigrations, cancellationToken);
+                    return await EnsureDbAndTablesCreatedAsync(connection, config, cancellationToken);
                 }
             }
         }
 
-        public static Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, bool enableHeavyMigrations = true, CancellationToken cancellationToken = default)
-        {
-            return EnsureDbAndTablesCreatedAsync(existingConnection, "HangFire", enableHeavyMigrations, cancellationToken);
-        }
-         public static async Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, string schemaName, bool enableHeavyMigrations = true, CancellationToken cancellationToken = default)
+         public static async Task<bool> EnsureDbAndTablesCreatedAsync(DbConnection existingConnection, Action<JobStorageOptions> config = null, CancellationToken cancellationToken = default)
         {
             if (existingConnection is SqliteConnection)
             {
@@ -68,14 +60,16 @@ namespace Hangfire.Initialization
 
                 var persistedTables = await DbInitializer.TablesAsync(existingConnection, cancellationToken);
 
-                var options = new SQLiteStorageOptions
+                Action<JobStorageOptions> newConfig = (options) =>
                 {
-                    SchemaName = schemaName,
-                    PrepareSchemaIfNecessary = true
+                    if (config != null)
+                        config(options);
+
+                    options.PrepareSchemaIfNecessary = true;
                 };
 
                 //Initialize Schema
-                var storage = new SQLiteStorage((SqliteConnection)existingConnection, options);
+                HangfireJobStorage.GetJobStorage(existingConnection, newConfig);
 
                 return !persistedTables.Any(x => x.TableName.Contains("AggregatedCounter"));
             }
@@ -85,15 +79,16 @@ namespace Hangfire.Initialization
 
                 var persistedTables = await DbInitializer.TablesAsync(existingConnection, cancellationToken);
 
-                var options = new SqlServerStorageOptions
+                Action<JobStorageOptions> newConfig = (options) =>
                 {
-                    SchemaName = schemaName,
-                    PrepareSchemaIfNecessary = true,
-                    EnableHeavyMigrations = enableHeavyMigrations
+                    if (config != null)
+                        config(options);
+
+                    options.PrepareSchemaIfNecessary = true;
                 };
 
                 //Initialize Schema
-                var storage = new SqlServerStorage(existingConnection, options);
+                HangfireJobStorage.GetJobStorage(existingConnection, newConfig);
 
                 return !persistedTables.Any(x => x.TableName.Contains("AggregatedCounter"));
             }
