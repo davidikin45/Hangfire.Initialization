@@ -1,5 +1,6 @@
 ﻿using Hangfire.Common;
 using Hangfire.Server;
+using Hangfire.States;
 using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,7 @@ namespace Hangfire.Initialization
             var options = new BackgroundJobServerOptions
             {
                 ServerName = serverName,
-                Queues = new string[] { serverName, "default" }
+                //Queues = new string[] { serverName, EnqueuedState.DefaultQueue }
             };
             return StartHangfireServer(options, connectionString, config);
         }
@@ -46,7 +47,7 @@ namespace Hangfire.Initialization
             var options = new BackgroundJobServerOptions
             {
                 ServerName = serverName,
-                Queues = new string[] { serverName, "default" }
+                //Queues = new string[] { serverName, EnqueuedState.DefaultQueue }
             };
             return StartHangfireServer(options, existingConnection, config);
         }
@@ -56,7 +57,7 @@ namespace Hangfire.Initialization
             var options = new BackgroundJobServerOptions
             {
                 ServerName = serverName,
-                Queues = new string[] { serverName, "default" }
+                //Queues = new string[] { serverName, EnqueuedState.DefaultQueue }
             };
             return StartHangfireServer(options, storage, config);
         }
@@ -116,6 +117,14 @@ namespace Hangfire.Initialization
 
         public static (IBackgroundProcessingServer Server, IRecurringJobManager RecurringJobManager, IBackgroundJobClient BackgroundJobClient, JobStorage Storage) StartHangfireServer(BackgroundJobServerOptions options, JobStorage storage, HangfireLauncherOptions launcherOptions)
         {
+            //Always create a queue with the server name.
+            if (!string.IsNullOrEmpty(options.ServerName) && !options.Queues.Contains(options.ServerName))
+            {
+                var queues = options.Queues.ToList();
+                queues.Insert(0, options.ServerName);
+                options.Queues = queues.ToArray();
+            }
+
             var additionalProcesses = launcherOptions?.AdditionalProcesses ?? Enumerable.Empty<IBackgroundProcess>();
 
             var filterProvider = launcherOptions?.FilterProvider ?? options.FilterProvider ?? JobFilterProviders.Providers;
