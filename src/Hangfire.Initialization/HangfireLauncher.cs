@@ -32,7 +32,7 @@ namespace Hangfire.Initialization
             return StartHangfireServer(serverName, "DataSource=:memory:;", config);
         }
 
-        public static HangfireServerDetails StartHangfireServer(string serverName, string connectionString, Action<HangfireLauncherOptions> config = null)
+        public static HangfireServerDetails StartHangfireServer(string serverName, string connectionString = "", Action<HangfireLauncherOptions> config = null)
         {
             var options = new BackgroundJobServerOptions
             {
