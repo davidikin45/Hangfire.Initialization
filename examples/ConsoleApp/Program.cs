@@ -22,22 +22,22 @@ namespace ConsoleApp
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings();
 
-            GlobalJobFilters.Filters.Add(new HangfireLoggerAttribute());
-            GlobalJobFilters.Filters.Add(new HangfirePreserveOriginalQueueAttribute());
+            //GlobalJobFilters.Filters.Add(new HangfireLoggerAttribute());
+            //GlobalJobFilters.Filters.Add(new HangfirePreserveOriginalQueueAttribute());
 
             using (var server = HangfireLauncher.StartHangfireServerInMemory("console", options =>
             {
 
-                //var jobFilters = new JobFilterCollection();
-                //jobFilters.Add(new CaptureCultureAttribute());
-                //jobFilters.Add(new AutomaticRetryAttribute());
-                //jobFilters.Add(new StatisticsHistoryAttribute());
-                //jobFilters.Add(new ContinuationsSupportAttribute());
+                var jobFilters = new JobFilterCollection();
+                jobFilters.Add(new CaptureCultureAttribute());
+                jobFilters.Add(new AutomaticRetryAttribute());
+                jobFilters.Add(new StatisticsHistoryAttribute());
+                jobFilters.Add(new ContinuationsSupportAttribute());
 
-                //jobFilters.Add(new HangfireLoggerAttribute());
-                //jobFilters.Add(new HangfirePreserveOriginalQueueAttribute());
+                jobFilters.Add(new HangfireLoggerAttribute());
+                jobFilters.Add(new HangfirePreserveOriginalQueueAttribute());
 
-                //options.FilterProvider = new JobFilterProviderCollection(jobFilters, new JobFilterAttributeFilterProvider());
+                options.FilterProvider = new JobFilterProviderCollection(jobFilters, new JobFilterAttributeFilterProvider());
             }))
             {
                 Console.WriteLine("Hangfire Server started. Press any key to exit...");
