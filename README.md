@@ -121,3 +121,5 @@ public class Startup
 * [Database Initialization](https://github.com/davidikin45/Database.Initialization)
 * [EntityFrameworkCore Initialization](https://github.com/davidikin45/EntityFrameworkCore.Initialization)
 * [MiniProfiler Initialization](https://github.com/davidikin45/MiniProfilerDb.Initialization)
+* [Hangfire.SqlServer](https://github.com/HangfireIO/Hangfire/tree/master/src/Hangfire.SqlServer)
+* [Hangfire.SQLite](https://github.com/wanlitao/HangfireExtension)
