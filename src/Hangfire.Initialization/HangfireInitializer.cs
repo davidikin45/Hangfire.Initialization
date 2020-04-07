@@ -76,21 +76,24 @@ namespace Hangfire.Initialization
             else if (existingConnection is Microsoft.Data.SqlClient.SqlConnection || existingConnection is System.Data.SqlClient.SqlConnection)
             {
                 var created = await EnsureDbCreatedAsync(existingConnection, cancellationToken).ConfigureAwait(false);
-
-                var persistedTables = await DbInitializer.TablesAsync(existingConnection, cancellationToken);
-
-                Action<JobStorageOptions> newConfig = (options) =>
+    
+                using (var connection = new Microsoft.Data.SqlClient.SqlConnection(existingConnection.ConnectionString))
                 {
-                    if (config != null)
-                        config(options);
+                    var persistedTables = await DbInitializer.TablesAsync(connection, cancellationToken);
 
-                    options.PrepareSchemaIfNecessary = true;
-                };
+                    Action<JobStorageOptions> newConfig = (options) =>
+                    {
+                        if (config != null)
+                            config(options);
 
-                //Initialize Schema
-                HangfireJobStorage.GetJobStorage(existingConnection, newConfig);
+                        options.PrepareSchemaIfNecessary = true;
+                    };
 
-                return !persistedTables.Any(x => x.TableName.Contains("AggregatedCounter"));
+                    //Initialize Schema
+                    HangfireJobStorage.GetJobStorage(connection, newConfig);
+
+                    return !persistedTables.Any(x => x.TableName.Contains("AggregatedCounter"));
+                }             
             }
             else
             {
@@ -131,7 +134,7 @@ namespace Hangfire.Initialization
             }
             else
             {
-                using (var connection = new SqlConnection(connectionString))
+                using (var connection = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
                 {
                     return await EnsureTablesDeletedAsync(connection, schemaName, cancellationToken);
                 }
@@ -202,7 +205,7 @@ namespace Hangfire.Initialization
                     return await DbInitializer.EnsureDestroyedAsync(existingConnection, cancellationToken).ConfigureAwait(false);
                 }
             }
-            else if (existingConnection is SqlConnection)
+            else if (existingConnection is Microsoft.Data.SqlClient.SqlConnection || existingConnection is System.Data.SqlClient.SqlConnection)
             {
                 bool dbExists = await DbInitializer.ExistsAsync(existingConnection, cancellationToken);
 
@@ -229,18 +232,37 @@ namespace Hangfire.Initialization
                     bool deleted = false;
                     try
                     {
-                        using (SqlTransaction transaction = ((SqlConnection)existingConnection).BeginTransaction())
+                        if(existingConnection is Microsoft.Data.SqlClient.SqlConnection sqlConnection)
                         {
-                            foreach (var commandSql in commands)
+                            using (Microsoft.Data.SqlClient.SqlTransaction transaction = sqlConnection.BeginTransaction())
                             {
-                                deleted = true;
-                                using (var command = new SqlCommand(commandSql, ((SqlConnection)existingConnection), transaction))
+                                foreach (var commandSql in commands)
                                 {
-                                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                                    deleted = true;
+                                    using (var command = new Microsoft.Data.SqlClient.SqlCommand(commandSql, sqlConnection, transaction))
+                                    {
+                                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                                    }
                                 }
-                            }
 
-                            transaction.Commit();
+                                transaction.Commit();
+                            }
+                        }
+                        else if (existingConnection is System.Data.SqlClient.SqlConnection systemSqlConnection)
+                        {
+                            using (System.Data.SqlClient.SqlTransaction transaction = systemSqlConnection.BeginTransaction())
+                            {
+                                foreach (var commandSql in commands)
+                                {
+                                    deleted = true;
+                                    using (var command = new System.Data.SqlClient.SqlCommand(commandSql, systemSqlConnection, transaction))
+                                    {
+                                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                                    }
+                                }
+
+                                transaction.Commit();
+                            }
                         }
                     }
                     finally
