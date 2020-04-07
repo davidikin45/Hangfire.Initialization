@@ -74,7 +74,7 @@ namespace Hangfire.Initialization
 
                 return new SQLiteStorage(existingConnection, storageOptions);
             }
-            else if (existingConnection is SqlConnection)
+            else if (existingConnection is System.Data.SqlClient.SqlConnection || existingConnection is Microsoft.Data.SqlClient.SqlConnection)
             {
                 var storageOptions = new SqlServerStorageOptions()
                 {

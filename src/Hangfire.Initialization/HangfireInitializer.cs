@@ -45,7 +45,7 @@ namespace Hangfire.Initialization
             }
             else
             {
-                using (var connection = new SqlConnection(connectionString))
+                using (var connection = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
                 {
                     return await EnsureDbAndTablesCreatedAsync(connection, config, cancellationToken);
                 }
@@ -73,9 +73,9 @@ namespace Hangfire.Initialization
 
                 return !persistedTables.Any(x => x.TableName.Contains("AggregatedCounter"));
             }
-            else if (existingConnection is SqlConnection)
+            else if (existingConnection is Microsoft.Data.SqlClient.SqlConnection || existingConnection is System.Data.SqlClient.SqlConnection)
             {
-                await EnsureDbCreatedAsync(existingConnection, cancellationToken).ConfigureAwait(false);
+                var created = await EnsureDbCreatedAsync(existingConnection, cancellationToken).ConfigureAwait(false);
 
                 var persistedTables = await DbInitializer.TablesAsync(existingConnection, cancellationToken);
 
